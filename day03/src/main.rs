@@ -77,6 +77,78 @@ fn get_part_number_sum(grid : &Vec<Vec<char>>, ) -> i32 {
     sum
 }
 
+fn get_gear_ratio_sum(grid : &Vec<Vec<char>>, ) -> i32 {
+    let mut num_star_grid : Vec<Vec<i32>> = vec![vec![0;grid[0].len()]; grid.len()];
+    let mut gear_ratios : Vec<Vec<i32>> = vec![vec![1;grid[0].len()]; grid.len()];
+    for (y, row) in grid.iter().enumerate() {
+        let mut number_ranges : Vec<(usize, usize)> = vec!();
+        let mut curr_start = None;
+        //get the index range of all the numbers in the row
+        for (x, character) in row.iter().enumerate() {
+            if character <= &'9' && character >= &'0' {
+                if curr_start == None{
+                    curr_start = Some(x);
+                }
+            }
+            else {
+                if curr_start != None {
+                    number_ranges.push((curr_start.unwrap(), x));
+                    curr_start = None;
+                }
+            }
+            // print!("{}", character);
+        }
+        if curr_start != None {
+            number_ranges.push((curr_start.unwrap(), row.len()));
+            curr_start = None;
+        }
+        // println!(" {:?}", number_ranges);
+        //check for each index range if it is next to a symbol{
+        for number_range in number_ranges {
+            if is_touching_symbol(y, number_range, grid){
+                let mut left = 0;
+                if number_range.0 > 0 {
+                    left = number_range.0-1;
+                }
+                let mut right = grid[y].len();
+                if number_range.1 < grid[y].len() {
+                    right = number_range.1 + 1
+                }
+                let mut top = 0;
+                if y>0 {
+                    top = y-1;
+                }
+                let mut bottom = grid.len();
+                if y+1 < grid.len(){
+                    bottom = y+1+1;
+                }
+                for iy in top..bottom {
+                    for ix in left..right {
+                        let character = grid[iy][ix];
+                        if character == '*' {
+                            num_star_grid[iy][ix] += 1;
+                            gear_ratios[iy][ix] *= id_from_range(y, number_range, grid);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    let mut sum = 0;
+    for i in 0..num_star_grid.len() {
+        for j in 0..num_star_grid[0].len() {
+            if num_star_grid[i][j] == 2 {
+                sum += gear_ratios[i][j];
+            }
+
+        }
+
+    }
+    sum
+}
+
+
 fn part1(file_name : String) -> i32 {
     let grid = read_to_grid(file_name);
     // for row in grid.iter() {
@@ -85,9 +157,17 @@ fn part1(file_name : String) -> i32 {
     get_part_number_sum(&grid)
 }
 
+fn part2(file_name : String) -> i32 {
+    let grid = read_to_grid(file_name);
+    get_gear_ratio_sum(&grid)
+}
+
 fn main() {
     // let p1 = part1(String::from("src/engine_schematic_test.txt"));
     // let p1 = part1(String::from("src/es_test_2.txt"));
     let p1 = part1(String::from("src/engine_schematic.txt"));
     println!("Part 1: {}", p1);
+
+    let p2 = part2(String::from("src/engine_schematic.txt"));
+    println!("Part 2: {}", p2);
 }
