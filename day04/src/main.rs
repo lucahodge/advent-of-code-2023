@@ -55,8 +55,23 @@ fn part1(file_name : &str) -> i32 {
     sum
 }
 
+fn part2(file_name : &str) -> i32 {
+    let cards = parse_cards(file_name);
+    let cards_len = cards.len();
+    let mut copies : Vec<i32> = vec![1; cards_len];
+    for (index, card) in cards.into_iter().enumerate() {
+        let num_matches = number_of_matches(card);
+        let upper_bound = std::cmp::min(cards_len, index+1+num_matches as usize);
+        for i in (index+1)..upper_bound{
+            copies[i] += copies[index];
+        }
+    }
+    copies.into_iter().fold(0, |sum, x| sum + x)
+}
+
 fn main() {
     println!("Part 1: {}", part1("src/cards.txt"));
+    println!("Part 2: {}", part2("src/cards.txt"));
 }
 
 #[cfg(test)]
@@ -66,5 +81,10 @@ mod tests {
     fn part1_test() {
         let result = part1("src/cards_test.txt");
         assert_eq!(result, 13);
+    }
+    #[test]
+    fn part2_test() {
+        let result = part2("src/cards_test.txt");
+        assert_eq!(result, 30);
     }
 }
